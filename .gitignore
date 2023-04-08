@@ -1,0 +1,6 @@
+.venv/
+webrepl-master/
+*.bin
+*.tar.gz
+*.tar.xz
+*.zip
