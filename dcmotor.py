@@ -1,7 +1,7 @@
 from machine import Pin, PWM
 
 class DCMotor:
-    def __init__(self, pin1, pin2, enable_pin, min_duty=750, max_duty=1023):
+    def __init__(self, pin1, pin2, enable_pin, min_duty=150, max_duty=1023):
         self.pin1=pin1
         self.pin2=pin2
         self.enable_pin=enable_pin
