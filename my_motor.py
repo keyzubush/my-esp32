@@ -17,8 +17,8 @@ def run_servo():
     sleep(1)
 
 def run_motor():
-    for i in range(1, 5):
-        s = i * 20
+    for i in range(600, 1000, 50):
+        s = i 
         dc_motor_l.forward(s)
         dc_motor_r.forward(s)
         time.sleep(3)
