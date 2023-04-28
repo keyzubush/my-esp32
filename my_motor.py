@@ -17,7 +17,7 @@ def run_servo():
     sleep(1)
 
 def run_motor():
-    for i in range(600, 1000, 50):
+    for i in range(0, 100, 20):
         s = i 
         dc_motor_l.forward(s)
         dc_motor_r.forward(s)
@@ -25,8 +25,8 @@ def run_motor():
         dc_motor_l.stop()
         dc_motor_r.stop()
         time.sleep(1)
-        dc_motor_l.backwards(s)
-        dc_motor_r.backwards(s)
+        dc_motor_l.backwards(100-s)
+        dc_motor_r.backwards(100-s)
         time.sleep(3)
         dc_motor_l.stop()
         dc_motor_r.stop()
@@ -34,3 +34,6 @@ def run_motor():
 
 run_servo()
 run_motor()
+
+import sys
+del sys.modules['my_motor']
