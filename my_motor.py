@@ -4,8 +4,10 @@ import time
 
 import dcmotor
 
-dc_motor_l = dcmotor.DCMotor(Pin(25, Pin.OUT), Pin(33, Pin.OUT), PWM(Pin(32), 1000))
-dc_motor_r = dcmotor.DCMotor(Pin(27, Pin.OUT), Pin(26, Pin.OUT), PWM(Pin(14), 1000))
+freq = 2000
+
+dc_motor_l = dcmotor.DCMotor(Pin(25, Pin.OUT), Pin(33, Pin.OUT), PWM(Pin(32), freq))
+dc_motor_r = dcmotor.DCMotor(Pin(27, Pin.OUT), Pin(26, Pin.OUT), PWM(Pin(14), freq))
 
 def run_servo():
     servo = PWM(Pin(4, mode=Pin.OUT), freq=50)
@@ -17,20 +19,21 @@ def run_servo():
     sleep(1)
 
 def run_motor():
-    for i in range(0, 100, 20):
+    for i in range(10, 100, 10):
         s = i 
         dc_motor_l.forward(s)
         dc_motor_r.forward(s)
-        time.sleep(3)
+        print(s)
+        time.sleep(1)
         dc_motor_l.stop()
         dc_motor_r.stop()
         time.sleep(1)
-        dc_motor_l.backwards(100-s)
-        dc_motor_r.backwards(100-s)
-        time.sleep(3)
-        dc_motor_l.stop()
-        dc_motor_r.stop()
-        time.sleep(2)
+        #dc_motor_l.backwards(100-s)
+        #dc_motor_r.backwards(100-s)
+        #time.sleep(1)
+        #dc_motor_l.stop()
+        #dc_motor_r.stop()
+        #time.sleep(5)
 
 run_servo()
 run_motor()
