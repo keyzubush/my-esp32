@@ -24,7 +24,7 @@ corr = fw_count = angle = 0
 prev_distance = distance = 50
 t = time.time_ns()
 prev_line = line = 1000
-pos = "left"
+line_trigger = True
 
 for i in range(10**6):
     
@@ -43,22 +43,16 @@ for i in range(10**6):
 
     if distance < 5:
         state = "turn"
-    elif 1500 < line < 3500:
+    elif line > 1500:
         state = "line"
     elif prev_state == "line":
         state = "loose"
     elif prev_state == "loose":
-        state = "search"
+        state = "loose"
     elif prev_state == "search":
         state = "search"
     else:
         state = "forward"
-
-    # print
-        
-    if state != prev_state:
-        print(f'd={distance}, a={accel}, line={line}, st={state}, corr={corr}, dt={dt}, pos={pos}')
-        prev_state = state
 
     # do action
 
@@ -70,29 +64,28 @@ for i in range(10**6):
         else:
             corr -= 1
 
-    if state == "line":
-        dc_motor_l.forward(50 - corr)
-        dc_motor_r.forward(50 + corr)
-        if pos == "left" and line < prev_line: corr -= 1
-        if pos == "left" and line > prev_line: corr += 1
-        if pos == "right" and line < prev_line: corr += 1
-        if pos == "right" and line > prev_line: corr -= 1
-        angle = 0
-
-    if state == "loose":
+    if prev_state == "line" and state == "loose":
         dc_motor_l.stop()
         dc_motor_r.stop()
+        sleep(0.5)
+        line_trigger = False if line_trigger else True
+
+    if state in ["line", "loose"] :
+        if line_trigger:
+            dc_motor_l.forward(100)
+            dc_motor_r.stop()
+        else:
+            dc_motor_r.forward(100)
+            dc_motor_l.stop()
 
     if state == "search":
         angle += abs(accel['GyZ'])*dt
         if angle < 5000:
             dc_motor_l.forward(50)
             dc_motor_r.stop()
-            pos = "left"
         else:
             dc_motor_l.stop()
             dc_motor_r.forward(50)
-            pos = "right"
         if angle > 15000:
             state = prev_state = "forward"
             angle = 0
@@ -132,3 +125,8 @@ for i in range(10**6):
         dc_motor_r.forward(100)
 
 
+    # print
+        
+    if state != prev_state:
+        print(f'd={distance}, gyz={accel['GyZ']}, line={line}, st={state}, corr={corr}, dt={dt}')
+        prev_state = state
