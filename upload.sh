@@ -5,6 +5,8 @@
 # import sys
 # sys.exit()
 
+# del sys.modules['my_line']
+
 # import machine
 # machine.reset()
 
