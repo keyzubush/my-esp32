@@ -19,3 +19,4 @@ webrepl-master/webrepl_cli.py -p 493944 my_echo.py 192.168.1.239:my_echo.py
 webrepl-master/webrepl_cli.py -p 493944 my_line.py 192.168.1.239:my_line.py
 webrepl-master/webrepl_cli.py -p 493944 my_track.py 192.168.1.239:my_track.py
 webrepl-master/webrepl_cli.py -p 493944 my_robot.py 192.168.1.239:my_robot.py
+webrepl-master/webrepl_cli.py -p 493944 my_track2.py 192.168.1.239:my_track2.py
