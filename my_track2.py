@@ -27,6 +27,7 @@ prev_distance = distance = 50
 t = time.time_ns()
 prev_line = line = 1000
 line_trigger = True
+e_old = 0
 
 for i in range(10**6):
 
@@ -37,8 +38,8 @@ for i in range(10**6):
     else: prev_distance = distance
     if i % 10 == 0: accel = mpu.get_values()
     prev_line = line
-    line_r = line_r_pin.read()
-    line_l = line_l_pin.read()
+    line_r = line_r_pin.read()/1000
+    line_l = line_l_pin.read()/1000
     dt = (time.time_ns() - t)/10**9
     t = time.time_ns()
 
@@ -51,12 +52,11 @@ for i in range(10**6):
 
     if state == "line":
 
-        kP = 13
-        kD = 8
-        e_old = 0
+        kP = 25
+        kD = 250
         v = 70
 
-        e = (line_l - line_r)/1000
+        e = line_l - line_r
         p = e * kP
         d = (e - e_old) * kD
         u = p + d
