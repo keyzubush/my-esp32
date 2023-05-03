@@ -29,13 +29,13 @@ prev_line = line = 1000
 line_trigger = True
 
 for i in range(10**6):
-    
+
     # get sensors
 
     distance = sensor.distance_cm()
     if distance < 0: distance = prev_distance
     else: prev_distance = distance
-    accel = mpu.get_values()
+    if i % 10 == 0: accel = mpu.get_values()
     prev_line = line
     line_r = line_r_pin.read()
     line_l = line_l_pin.read()
@@ -51,20 +51,19 @@ for i in range(10**6):
 
     if state == "line":
 
-        kP = 1
-        kD = 10
-        eOld = 0
+        kP = 13
+        kD = 8
+        e_old = 0
         v = 70
 
-        e = line_l - line_r
+        e = (line_l - line_r)/1000
         p = e * kP
-        d = (e - eOld) * kD
+        d = (e - e_old) * kD
         u = p + d
-        eOld = e
+        e_old = e
 
         dc_motor_l.forward(v + u)
         dc_motor_r.forward(v - u)
 
-        time.sleep(0.001)
-
-        print(line_l, line_r, u, e, p, d)
+        if i % 200 == 0:
+            print(f"dt={dt}, l={line_l}, r={line_r}, u={u}, e={e}, p={p}, d={d}")
