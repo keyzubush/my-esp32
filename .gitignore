@@ -1,5 +1,6 @@
 .venv/
 webrepl-master/
+esptool-master/
 *.bin
 *.tar.gz
 *.tar.xz
