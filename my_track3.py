@@ -97,29 +97,36 @@ while True:
     if state == "detour":
         dc_motor_l.stop()
         dc_motor_r.stop()
-        servo.duty(50)
-        sleep(1)
-        d_l = sensor.distance_cm()
-        servo.duty(100)
-        sleep(1)
-        d_r = sensor.distance_cm()
-        servo.duty(75)
-        sleep(1)
-        angle = 0
-        while angle < RIGHT_ANGLE/2:
-            accel = mpu.get_values()
-            if d_r > d_l:
-                dc_motor_l.forward(50)
-                dc_motor_r.backwards(50)
+        dc_motor_r.forward(50)
+        dc_motor_l.backwards(50)
+        time.sleep(0.5)
+        dc_motor_l.stop()
+        dc_motor_r.stop() 
+        dc_motor_r.forward(50) 
+        dc_motor_l.forward(50)
+        time.sleep(3)
+        dc_motor_l.forward(50)
+        dc_motor_r.backwards(50) 
+        time.sleep(1)
+        dc_motor_l.stop()
+        dc_motor_r.stop()
+        line_l = line_l_pin.read()/1000
+        while line_l < 4:
+            dc_motor_l.forward(V - u)
+            dc_motor_r.forward(V + u)
+            if accel['GyZ'] < 0: 
+                u += 1
             else:
-                dc_motor_r.forward(50)
-                dc_motor_l.backwards(50)
-            time.sleep(0.1)
-            angle += abs(accel['GyZ'])*0.1
-        angle = 0
-        dc_motor_l.forward(V - u)
-        dc_motor_r.forward(V + u)
-
+                u -= 1
+            time.sleep(0.001)
+            line_l = line_l_pin.read()/1000
+        dc_motor_l.stop()
+        dc_motor_r.stop()
+        dc_motor_l.forward(50)
+        dc_motor_r.backwards(50)
+        time.sleep(0.5)
+        state = "line"
+            
 
     if state == "turn":
         dc_motor_l.stop()
@@ -157,6 +164,9 @@ while True:
     if state != prev_state:
         print(f"dt={dt}, l={line_l}, r={line_r}, u={u}, e={e}, p={p}, d={d}, st={state}")
         prev_state = state
+
+
+
 
 
 
