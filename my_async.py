@@ -11,23 +11,26 @@ import dcmotor
 freq = 2000
 dc_motor_l = dcmotor.DCMotor(Pin(25, Pin.OUT), Pin(33, Pin.OUT), PWM(Pin(32), freq))
 dc_motor_r = dcmotor.DCMotor(Pin(27, Pin.OUT), Pin(26, Pin.OUT), PWM(Pin(14), freq))
-
 sensor = HCSR04(trigger_pin=15, echo_pin=18)
 i2c = I2C(0, scl=Pin(22), sda=Pin(21))
 mpu = mpu6050.accel(i2c)
 servo = PWM(Pin(4, mode=Pin.OUT), freq=50)
 line_r_pin = ADC(Pin(34))
 line_l_pin = ADC(Pin(35))
+led = Pin(2, Pin.OUT)
 
-prev_state = state = "forward"
-corr = fw_count = angle = 0
-prev_distance = distance = 0
+prev_state = "forward"
+state = "forward"
+prev_distance = distance = 50
 radar = [50.0]*11
-t = time.time_ms()
+ticks = time.ticks_ms()
+dt = 0.01
+line_l = line_r = 0
+accel = {}
 
 N_RADAR = len(radar)
 LINE = 1.5
-LINE_TIMEOUT = 2.0 # sec
+LINE_TIMEOUT = 2000
 ACCEL_DEGREE = 55
 K_P = 25
 K_D = 250
@@ -36,10 +39,10 @@ V = 70
 async def print_debug():
     while True:
         if state != prev_state:
-            print(f"dt={dt}, l={line_l}, r={line_r}, u={u}, e={e}, p={p}, d={d}, st={state}")
+            print(f"dt={dt}, l={line_l}, r={line_r}, st={state}")
         await uasyncio.sleep_ms(100)
 
-async def blink(led):
+async def blink():
     while True:
         if   state == "forward": period_ms = 1000
         elif state == "line":    period_ms = 500
@@ -52,41 +55,43 @@ async def blink(led):
         await uasyncio.sleep_ms(period_ms)
 
 async def sensors():
-    global distance, accel, line_l, line_r, dt
+    global distance, accel, line_l, line_r, dt, ticks
     while True:
         distance = sensor.distance_cm()
         distance = distance if distance > 0 else prev_distance
         accel = mpu.get_values()
         line_r = line_r_pin.read()/1000
         line_l = line_l_pin.read()/1000
-        dt = (time.time_ms() - t) / 10**6
-        t = time.time_ms()
+        dt = time.ticks_diff(time.ticks_ms(), ticks) / 10**6
+        ticks = time.ticks_ms()
         await uasyncio.sleep_ms(20)
 
 async def head():
     global radar
     servo.duty(50)
-    await uasincio.sleep_ms(500)
+    await uasyncio.sleep_ms(500)
     for i in range(N_RADAR):
         radar[i] = distance
-        servo.duty(50 + i*(50/(N_RADAR-1)))
-        await uasincio.sleep_ms(100)
+        servo.duty(int(50 + i*(50/(N_RADAR-1))))
+        await uasyncio.sleep_ms(100)
     servo.duty(75)
-    await uasincio.sleep_ms(500)
+    await uasyncio.sleep_ms(500)
 
 async def calculate_state():
-    global state
+    global state, prev_state, line_l, line_r
     while True:
         if distance < 10 and state != "line":
             state = "turn"
         elif distance < 20 and state == "line":
             state = "detour"
+        elif state == "forward" and accel['GyX'] > 1750:
+            state = "obstacle"
         elif prev_state == "detour" and abs(line_l - line_r) > LINE:
             state = "line"
         elif abs(line_l - line_r) > LINE or prev_state == "line":
             if abs(line_l - line_r) > LINE:
-                t_line = time.time_ms()
-            if time.time_ms() - t_line > LINE_TIMEOUT:
+                t_line = time.ticks_ms()
+            if time.ticks_diff(time.ticks_ms(), t_line) > LINE_TIMEOUT:
                 state = "forward"
         elif prev_state == "line":
             state = "line"
@@ -94,13 +99,13 @@ async def calculate_state():
             state = "forward"
 
         prev_state = state
-        await uasincio.sleep_ms(10)
+        await uasyncio.sleep_ms(10)
 
 async def drive_angle(angle):
     a = 0
     dc_motor_l.stop()
     dc_motor_r.stop()
-    while abs(a) < abs(ACCEL_DEGREE*angle) and status == "detour":
+    while abs(a) < abs(ACCEL_DEGREE*angle) and state == "detour":
         if angle > 0:
             dc_motor_l.forward(50)
             dc_motor_r.backwards(50)
@@ -108,11 +113,12 @@ async def drive_angle(angle):
             dc_motor_r.forward(50)
             dc_motor_l.backwards(50)
         a += accel['GyZ']
-        await uasincio.sleep_ms(20)
+        await uasyncio.sleep_ms(20)
 
 async def drive_forward(period_ms):
     u = 0
-    while state in ["forward", "detour"]:
+    timer = 0
+    while state in ["forward", "detour"] and timer < period_ms:
         dc_motor_l.forward(V - u)
         dc_motor_r.forward(V + u)
         if accel['GyZ'] < 0:
@@ -120,7 +126,7 @@ async def drive_forward(period_ms):
         else:
             u -= 1
         await uasyncio.sleep_ms(10)
-    await uasyncio.sleep_ms(period_ms)
+        timer += dt
 
 async def drive_line():
     e = e_old = 0
@@ -133,7 +139,7 @@ async def drive_line():
         e_old = e
         dc_motor_l.forward(V + u)
         dc_motor_r.forward(V - u)
-        await uasincio.sleep_ms(10)
+        await uasyncio.sleep_ms(10)
 
 async def drive_search():
     while state == "search":
@@ -147,7 +153,7 @@ async def drive_search():
         if angle > RIGHT_ANGLE*3:
             state = prev_state = "forward"
             angle = 0
-        await uasincio.sleep_ms(10)
+        await uasyncio.sleep_ms(10)
 
 async def drive_detour():
     await drive_angle(45)
@@ -156,30 +162,35 @@ async def drive_detour():
     await drive_forward(1000)
 
 async def drive_turn():
-    while state == "turn":
-        while angle < RIGHT_ANGLE:
-        if d_r > d_l:
-            dc_motor_l.forward(50)
-            dc_motor_r.backwards(50)
-        else:
-            dc_motor_r.forward(50)
-            dc_motor_l.backwards(50)
-        time.sleep(0.1)
-        angle += abs(accel['GyZ'])*0.1
-    angle = 0
+    dc_motor_l.backwards(50)
+    dc_motor_r.backwards(50)
+    await uasyncio.sleep_ms(500)
+    await head()
+    if radar[0] > radar[-1]:
+        await drive_angle(-90)
+    else:
+        await drive_angle(90)
+
+async def drive_obstacle():
+    dc_motor_l.backwards(50)
+    dc_motor_r.backwards(50)
+    await uasyncio.sleep_ms(500)
+    await drive_detour()
 
 async def drive():
     while True:
-        if   state == "forward": await drive_forward()
+        if   state == "forward": await drive_forward(60_000)
         elif state == "line":    await drive_line()
         elif state == "detour":  await drive_detour()
         elif state == "turn":    await drive_turn()
+        elif state == "obstacle":await drive_obstacle()
         elif state == "search":  await drive_search()
-        await uasincio.sleep_ms(10)
+        await uasyncio.sleep_ms(10)
 
 async def main():
-    uasyncio.create_task(blink())
     uasyncio.create_task(sensors())
+    uasyncio.create_task(print_debug())
+    uasyncio.create_task(blink())
     uasyncio.create_task(calculate_state())
     uasyncio.create_task(drive())
     await uasyncio.sleep_ms(600_000)
