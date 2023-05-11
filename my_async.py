@@ -38,9 +38,8 @@ V = 70
 
 async def print_debug():
     while True:
-        if state != prev_state:
-            print(f"dt={dt}, l={line_l}, r={line_r}, st={state}")
-        await uasyncio.sleep_ms(100)
+        print(f"dt={dt}, l={line_l}, r={line_r}, st={state}")
+        await uasyncio.sleep_ms(500)
 
 async def blink():
     while True:
@@ -62,7 +61,7 @@ async def sensors():
         accel = mpu.get_values()
         line_r = line_r_pin.read()/1000
         line_l = line_l_pin.read()/1000
-        dt = time.ticks_diff(time.ticks_ms(), ticks) / 10**6
+        dt = time.ticks_diff(time.ticks_ms(), ticks) / 10**3
         ticks = time.ticks_ms()
         await uasyncio.sleep_ms(20)
 
