@@ -19,7 +19,6 @@ line_r_pin = ADC(Pin(34))
 line_l_pin = ADC(Pin(35))
 led = Pin(2, Pin.OUT)
 
-prev_state = "forward"
 state = "forward"
 prev_distance = distance = 50
 radar = [50.0]*11
@@ -37,9 +36,10 @@ K_D = 250
 V = 70
 
 async def print_debug():
+    await uasyncio.sleep_ms(500)
     while True:
-        print(f"dt={dt}, l={line_l}, r={line_r}, st={state}")
-        await uasyncio.sleep_ms(500)
+        print(f"dt={dt}, l={line_l}, r={line_r}, gyx={accel['GyX']}, gyz={accel['GyZ']}, st={state}")
+        await uasyncio.sleep_ms(250)
 
 async def blink():
     while True:
@@ -77,28 +77,25 @@ async def head():
     await uasyncio.sleep_ms(500)
 
 async def calculate_state():
-    global state, prev_state, line_l, line_r
+    global state, line_l, line_r
     while True:
-        if distance < 10 and state != "line" and state != "detour":
+        if distance < 10 and state not in ["line", "detour"]:
             state = "turn"
         elif distance < 20 and state == "line":
             state = "detour"
-        elif state == "forward" and accel['GyX'] > 1750:
+        elif accel['GyX'] > 1750:
             state = "obstacle"
-        elif abs(line_l - line_r) > LINE or prev_state == "line" and state != "detour":
+        elif abs(line_l - line_r) > LINE or state in ["line", "detour"]:
             if abs(line_l - line_r) > LINE:
                 t_line = time.ticks_ms()
                 state = "line"
             if time.ticks_diff(time.ticks_ms(), t_line) > LINE_TIMEOUT:
                 state = "forward"
-        elif prev_state == "line":
-            state = "line"
-        elif prev_state == "detour":
-            state == "detour"
+        elif state in ["line", "detour", "obstacle"]:
+            pass
         else:
             state = "forward"
 
-        prev_state = state
         await uasyncio.sleep_ms(10)
 
 async def drive_angle(angle):
@@ -152,7 +149,7 @@ async def drive_search():
             dc_motor_l.stop()
             dc_motor_r.forward(50)
         if angle > RIGHT_ANGLE*3:
-            state = prev_state = "forward"
+            state = "forward"
             angle = 0
         await uasyncio.sleep_ms(10)
 
@@ -160,7 +157,7 @@ async def drive_detour():
     await drive_angle(45)
     await drive_forward(1000)
     await drive_angle(-90)
-    prev_state = state = "forward"
+    state = "forward"
 
 async def drive_turn():
     dc_motor_l.backwards(50)
