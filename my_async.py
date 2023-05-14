@@ -19,7 +19,7 @@ line_r_pin = ADC(Pin(34))
 line_l_pin = ADC(Pin(35))
 led = Pin(2, Pin.OUT)
 
-prev_distance = distance = 50
+distance = 50
 radar = [50.0]*11
 ticks = time.ticks_ms()
 dt = 0.01
@@ -28,8 +28,8 @@ accel = {}
 
 N_RADAR = len(radar)
 LINE = 2.5
-LINE_TIMEOUT = 2000
-ACCEL_DEGREE = 55
+LINE_TIMEOUT = 5000
+ACCEL_DEGREE = 65
 K_P = 25
 K_D = 250
 V = 70
@@ -40,40 +40,43 @@ class State():
     DETOUR  = "detour"
     TURN    = "turn"
     ROTATE  = "rotate"
+    HEAD    = "head"
 
 state = State.FORWARD
 
 async def print_debug():
-    print("call print_debug")
     await uasyncio.sleep_ms(500)
     i = 0
     prev_state = state
     while True:
         i += 1
         if i % 100 == 0 or state != prev_state:
-            print(f"t={ticks}, d={distance}, l={line_l}, r={line_r}, gyx={accel['GyX']}, gyz={accel['GyZ']}, st={state}")
+            status = "(new)" if state != prev_state else ""
+            print(f"t={ticks}, d={distance}, l={line_l}, r={line_r}, gyx={accel['GyX']}, gyz={accel['GyZ']}, st={state} {status}")
             prev_state = state
         await uasyncio.sleep_ms(10)
 
 async def blink():
-    print("call blink")
     while True:
         if   state == State.FORWARD: period_ms = 300
         elif state == State.LINE:    period_ms = 50
         elif state == State.DETOUR:  period_ms = 100
         elif state == State.TURN:    period_ms = 75
         elif state == State.ROTATE:  period_ms = 200
+        elif state == State.HEAD:    period_ms = 150
+        else:                        period_ms = 10
         led.on()
         await uasyncio.sleep_ms(5)
         led.off()
         await uasyncio.sleep_ms(period_ms)
 
 async def sensors():
-    print("call sensors")
     global distance, accel, line_l, line_r, dt, ticks
+    prev_distance = distance
     while True:
         distance = sensor.distance_cm()
         distance = distance if distance > 0 else prev_distance
+        prev_distance = distance
         accel = mpu.get_values()
         line_r = line_r_pin.read()/1000
         line_l = line_l_pin.read()/1000
@@ -82,9 +85,7 @@ async def sensors():
         await uasyncio.sleep_ms(10)
 
 async def head():
-    print("call head")
-    global radar
-    if state not in [State.TURN]: return
+    global radar, state
     servo.duty(50)
     await uasyncio.sleep_ms(500)
     for i in range(N_RADAR):
@@ -92,28 +93,26 @@ async def head():
         servo.duty(int(50 + i*(50/(N_RADAR-1))))
         await uasyncio.sleep_ms(200)
     servo.duty(75)
+    state = State.TURN
 
 async def calculate_state():
-    print("call calculate_state")
     global state
+    t_line = time.ticks_ms()
     while True:
-        if distance < 10 and state not in [State.LINE, State.DETOUR]:
+        prev_state = state
+        if distance < 15 and state not in [State.LINE, State.DETOUR, State.TURN, State.HEAD]:
             state = State.TURN
-            print("d < 10")
-        elif distance < 20 and state == State.LINE:
+        elif distance < 25 and state not in [State.DETOUR, State.TURN, State.HEAD]:
             state = State.DETOUR
-            print("d < 20")
         elif accel['GyX'] > 3000 and state == State.FORWARD:
             state = State.TURN
-            print("gyx > 3000")
         elif abs(line_l - line_r) > LINE or state in [State.LINE, State.DETOUR]:
             if abs(line_l - line_r) > LINE:
                 t_line = time.ticks_ms()
                 if state != State.DETOUR: state = State.LINE
             if time.ticks_diff(time.ticks_ms(), t_line) > LINE_TIMEOUT:
                 state = State.FORWARD
-                print("> LINE_TIMEOUT")
-        elif state in [State.LINE, State.TURN, State.DETOUR]:
+        elif state in [State.LINE, State.TURN, State.DETOUR, State.HEAD]:
             pass
         else:
             state = State.FORWARD
@@ -121,12 +120,12 @@ async def calculate_state():
         await uasyncio.sleep_ms(10)
 
 async def drive_angle(angle):
-    print("call drive_angle")
     a = 0
+    timer = 0
     dc_motor_l.stop()
     dc_motor_r.stop()
     await uasyncio.sleep_ms(100)
-    while abs(a) < abs(ACCEL_DEGREE*angle):
+    while abs(a) < abs(ACCEL_DEGREE*angle) and timer < 5.0:
         if angle > 0:
             dc_motor_l.forward(V)
             dc_motor_r.backwards(V)
@@ -134,10 +133,10 @@ async def drive_angle(angle):
             dc_motor_r.forward(V)
             dc_motor_l.backwards(V)
         a += accel['GyZ']*dt
+        timer += dt
         await uasyncio.sleep_ms(20)
 
 async def drive_forward(period_ms=1000):
-    print("call drive_forward")
     u = 0
     timer = 0
     while timer < period_ms/1000:
@@ -149,10 +148,8 @@ async def drive_forward(period_ms=1000):
             u -= 1
         await uasyncio.sleep_ms(10)
         timer += dt
-    print("end drive_forward")
 
 async def drive_backwards(period_ms):
-    print("call drive_backwards")
     u = 0
     timer = 0
     while timer < period_ms/1000:
@@ -166,10 +163,8 @@ async def drive_backwards(period_ms):
         timer += dt
     dc_motor_l.stop()
     dc_motor_r.stop()
-    print("end drive_backwards")
 
 async def drive_line():
-    print("call drive_line")
     e = e_old = 0
     u = 0
     while state == State.LINE:
@@ -183,7 +178,6 @@ async def drive_line():
         await uasyncio.sleep_ms(10)
 
 async def drive_detour():
-    print("call drive_detour")
     global state
     await drive_angle(45)
     await drive_forward(2500)
@@ -192,7 +186,8 @@ async def drive_detour():
     await uasyncio.sleep_ms(20)
 
 async def drive_turn():
-    print("call drive_turn")
+    global state
+    state = State.HEAD
     await drive_backwards(500)
     await head()
     if radar[0] > radar[-1]:
@@ -203,7 +198,6 @@ async def drive_turn():
     await uasyncio.sleep_ms(20)
 
 async def drive():
-    print("call drive")
     while True:
         if   state == State.FORWARD: await drive_forward()
         elif state == State.LINE:    await drive_line()
@@ -212,7 +206,6 @@ async def drive():
         await uasyncio.sleep_ms(10)
 
 async def main():
-    print("call main")
     uasyncio.create_task(sensors())
     uasyncio.create_task(print_debug())
     uasyncio.create_task(blink())
