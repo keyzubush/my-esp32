@@ -19,7 +19,6 @@ line_r_pin = ADC(Pin(34))
 line_l_pin = ADC(Pin(35))
 led = Pin(2, Pin.OUT)
 
-state = "forward"
 prev_distance = distance = 50
 radar = [50.0]*11
 ticks = time.ticks_ms()
@@ -35,6 +34,15 @@ K_P = 25
 K_D = 250
 V = 70
 
+class State():
+    FORWARD = "forward"
+    LINE    = "line"
+    DETOUR  = "detour"  
+    TURN    = "turn" 
+    ROTATE  = "rotate" 
+
+state = State.FORWARD
+
 async def print_debug():
     await uasyncio.sleep_ms(500)
     i = 0
@@ -48,11 +56,11 @@ async def print_debug():
 
 async def blink():
     while True:
-        if   state == "forward": period_ms = 300
-        elif state == "line":    period_ms = 50
-        elif state == "detour":  period_ms = 100
-        elif state == "turn":    period_ms = 75
-        elif state == "angle":   period_ms = 200
+        if   state == State.FORWARD: period_ms = 300
+        elif state == State.LINE:    period_ms = 50
+        elif state == State.DETOUR:  period_ms = 100
+        elif state == State.TURN:    period_ms = 75
+        elif state == State.ROTATE:  period_ms = 200
         led.on()
         await uasyncio.sleep_ms(5)
         led.off()
@@ -84,11 +92,11 @@ async def head():
 async def calculate_state():
     global state
     while True:
-        if distance < 10 and state not in ["line", "detour"]:
-            state = "turn"
-        elif distance < 20 and state == "line":
-            state = "detour"
-        elif accel['GyX'] > 1750 and state == "forward":
+        if distance < 10 and state not in [State.LINE, State.DETOUR]:
+            state = State.TURN
+        elif distance < 20 and state == State.LINE:
+            state = State.DETOUR
+        elif accel['GyX'] > 1750 and state == State.FORWARD:
             state = "obstacle"
         elif abs(line_l - line_r) > LINE or state in ["line", "detour"]:
             if abs(line_l - line_r) > LINE:
