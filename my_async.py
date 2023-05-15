@@ -25,10 +25,11 @@ ticks = time.ticks_ms()
 dt = 0.01
 line_l = line_r = 0
 accel = {}
+u = 0
 
 N_RADAR = len(radar)
-LINE = 2.5
-LINE_TIMEOUT = 5000
+LINE = 2.0
+LINE_TIMEOUT = 2500
 ACCEL_DEGREE = 65
 K_P = 25
 K_D = 250
@@ -45,7 +46,7 @@ class State():
 state = State.FORWARD
 
 async def print_debug():
-    await uasyncio.sleep_ms(500)
+    await uasyncio.sleep_ms(100)
     i = 0
     prev_state = state
     while True:
@@ -58,17 +59,17 @@ async def print_debug():
 
 async def blink():
     while True:
-        if   state == State.FORWARD: period_ms = 300
-        elif state == State.LINE:    period_ms = 50
-        elif state == State.DETOUR:  period_ms = 100
-        elif state == State.TURN:    period_ms = 75
-        elif state == State.ROTATE:  period_ms = 200
-        elif state == State.HEAD:    period_ms = 150
-        else:                        period_ms = 10
+        if   state == State.FORWARD: b = (1, 300)
+        elif state == State.LINE:    b = (1, 50)
+        elif state == State.DETOUR:  b = (5, 100)
+        elif state == State.TURN:    b = (10, 75)
+        elif state == State.ROTATE:  b = (2, 200)
+        elif state == State.HEAD:    b = (3, 150)
+        else:                        b = (5, 20)
         led.on()
-        await uasyncio.sleep_ms(5)
+        await uasyncio.sleep_ms(b[0])
         led.off()
-        await uasyncio.sleep_ms(period_ms)
+        await uasyncio.sleep_ms(b[1])
 
 async def sensors():
     global distance, accel, line_l, line_r, dt, ticks
