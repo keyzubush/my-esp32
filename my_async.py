@@ -25,7 +25,7 @@ ticks = time.ticks_ms()
 dt = 0.01
 line_l = line_r = 0
 accel = {}
-u = 0
+corr = 0
 
 N_RADAR = len(radar)
 LINE = 2.0
@@ -46,14 +46,15 @@ class State():
 state = State.FORWARD
 
 async def print_debug():
-    await uasyncio.sleep_ms(100)
+    await uasyncio.sleep_ms(250)
     i = 0
     prev_state = state
     while True:
         i += 1
         if i % 100 == 0 or state != prev_state:
             status = "(new)" if state != prev_state else ""
-            print(f"t={ticks}, d={distance}, l={line_l}, r={line_r}, gyx={accel['GyX']}, gyz={accel['GyZ']}, st={state} {status}")
+            print(f't={ticks}, d={distance}, l={line_l}, r={line_r}, ' +
+                f'gyx={accel["GyX"]}, gyz={accel["GyZ"]}, corr={corr}, st={state} {status}')
             prev_state = state
         await uasyncio.sleep_ms(10)
 
@@ -83,7 +84,7 @@ async def sensors():
         line_l = line_l_pin.read()/1000
         dt = time.ticks_diff(time.ticks_ms(), ticks) / 10**3
         ticks = time.ticks_ms()
-        await uasyncio.sleep_ms(10)
+        await uasyncio.sleep_ms(5)
 
 async def head():
     global radar, state
@@ -105,7 +106,7 @@ async def calculate_state():
             state = State.TURN
         elif distance < 25 and state not in [State.DETOUR, State.TURN, State.HEAD]:
             state = State.DETOUR
-        elif accel['GyX'] > 3000 and state == State.FORWARD:
+        elif accel['GyX'] > 2000 and state == State.FORWARD:
             state = State.TURN
         elif abs(line_l - line_r) > LINE or state in [State.LINE, State.DETOUR]:
             if abs(line_l - line_r) > LINE:
@@ -118,7 +119,7 @@ async def calculate_state():
         else:
             state = State.FORWARD
 
-        await uasyncio.sleep_ms(10)
+        await uasyncio.sleep_ms(5)
 
 async def drive_angle(angle):
     a = 0
@@ -138,28 +139,28 @@ async def drive_angle(angle):
         await uasyncio.sleep_ms(20)
 
 async def drive_forward(period_ms=1000):
-    u = 0
+    global corr
     timer = 0
     while timer < period_ms/1000:
-        dc_motor_l.forward(V - u)
-        dc_motor_r.forward(V + u)
+        dc_motor_l.forward(V - corr)
+        dc_motor_r.forward(V + corr)
         if accel['GyZ'] < 0:
-            u += 1
+            corr += 1
         else:
-            u -= 1
+            corr -= 1
         await uasyncio.sleep_ms(10)
         timer += dt
 
 async def drive_backwards(period_ms):
-    u = 0
+    global corr
     timer = 0
     while timer < period_ms/1000:
-        dc_motor_l.backwards(V + u)
-        dc_motor_r.backwards(V - u)
+        dc_motor_l.backwards(V + corr)
+        dc_motor_r.backwards(V - corr)
         if accel['GyZ'] < 0:
-            u += 1
+            corr += 1
         else:
-            u -= 1
+            corr -= 1
         await uasyncio.sleep_ms(10)
         timer += dt
     dc_motor_l.stop()
