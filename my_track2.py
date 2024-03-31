@@ -13,8 +13,8 @@ line_r_pin = ADC(Pin(34))
 line_l_pin = ADC(Pin(35))
 
 freq = 2000
-dc_motor_l = dcmotor.DCMotor(Pin(25, Pin.OUT), Pin(33, Pin.OUT), PWM(Pin(32), freq))
-dc_motor_r = dcmotor.DCMotor(Pin(27, Pin.OUT), Pin(26, Pin.OUT), PWM(Pin(14), freq))
+dc_motor_r = dcmotor.DCMotor(Pin(25, Pin.OUT), Pin(33, Pin.OUT), PWM(Pin(32), freq))
+dc_motor_l = dcmotor.DCMotor(Pin(26, Pin.OUT), Pin(27, Pin.OUT), PWM(Pin(14), freq))
 
 sensor = HCSR04(trigger_pin=2, echo_pin=18)
 i2c = I2C(0, scl=Pin(22), sda=Pin(21))
@@ -52,14 +52,20 @@ for i in range(10**6):
 
     if state == "line":
 
-        kP = 25
-        kD = 250
-        v = 70
+        kP = 40
+        kD = 400
+        kI = 0.001
+        iMax = 25
+        v = 50
 
-        e = line_l - line_r
+        e = line_r - line_l
         p = e * kP
+        i += e * kI
         d = (e - e_old) * kD
-        u = p + d
+
+        if(abs (i) > iMax): i = iMax * (1 if i > 0 else -1)
+
+        u = p + i + d
         e_old = e
 
         dc_motor_l.forward(v + u)

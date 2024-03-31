@@ -10,8 +10,8 @@ import mpu6050
 import dcmotor
 
 freq = 2000
-dc_motor_l = dcmotor.DCMotor(Pin(25, Pin.OUT), Pin(33, Pin.OUT), PWM(Pin(32), freq))
-dc_motor_r = dcmotor.DCMotor(Pin(27, Pin.OUT), Pin(26, Pin.OUT), PWM(Pin(14), freq))
+dc_motor_r = dcmotor.DCMotor(Pin(25, Pin.OUT), Pin(33, Pin.OUT), PWM(Pin(32), freq))
+dc_motor_l = dcmotor.DCMotor(Pin(27, Pin.OUT), Pin(26, Pin.OUT), PWM(Pin(14), freq))
 
 sensor = HCSR04(trigger_pin=2, echo_pin=18)
 i2c = I2C(0, scl=Pin(22), sda=Pin(21))
@@ -28,9 +28,9 @@ e = 0
 LINE = 1.5
 LINE_TIMEOUT = 2.0 # sec
 RIGHT_ANGLE = 5000
-K_P = 25
-K_D = 250
-V = 70
+K_P = 10
+K_D = 100
+V = 100
 
 i = 0
 while True:
@@ -52,7 +52,8 @@ while True:
         state = "turn"
     elif distance < 15 and state == "line":
         state = "detour"
-    elif prev_state == "detour" and abs(line_l - line_r) > LINE
+    elif prev_state == "detour" and abs(line_l - line_r) > LINE:
+        pass
 
     elif abs(line_l - line_r) > 1 or prev_state == "line":
         if abs(line_l - line_r) > LINE:
