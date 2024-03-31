@@ -11,7 +11,8 @@ import dcmotor
 dc_motor_l = dcmotor.DCMotor(Pin(25, Pin.OUT), Pin(33, Pin.OUT), PWM(Pin(32), 1000))
 dc_motor_r = dcmotor.DCMotor(Pin(27, Pin.OUT), Pin(26, Pin.OUT), PWM(Pin(14), 1000))
 
-sensor = HCSR04(trigger_pin=2, echo_pin=18, echo_timeout_us=10000)
+sensor = HCSR04(trigger_pin=15, echo_pin=18, echo_timeout_us=10000)
+sensor2 = HCSR04(trigger_pin=2, echo_pin=5, echo_timeout_us=10000)
 i2c = I2C(0, scl=Pin(22), sda=Pin(21))     #initializing the I2C method for ESP32
 mpu = mpu6050.accel(i2c)
 
@@ -28,8 +29,9 @@ for n in range(5):
     for i in range(5):
         time.sleep(0.1)
         distance = sensor.distance_cm()
+        distance2 = sensor2.distance_cm()
         mpu.get_values()
-        print('Distance:', distance, 'cm, ', mpu.get_values())
+        print('Distance:', distance, 'Distance2', distance2, 'cm, ', mpu.get_values())
 
     dc_motor_l.stop()
     dc_motor_r.stop()
@@ -45,8 +47,9 @@ for n in range(5):
     for i in range(25):
         time.sleep(0.1)
         distance = sensor.distance_cm()
+        distance2 = sensor2.distance_cm()
         mpu.get_values()
-        print('Distance:', distance, 'cm, ', mpu.get_values())
+        print('Distance:', distance, 'Distance2', distance2, 'cm, ', mpu.get_values())
     
     dc_motor_l.stop()
     dc_motor_r.stop()
