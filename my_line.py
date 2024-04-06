@@ -41,8 +41,8 @@ for i in range(10**6):
     time.sleep_ms(2)
     
     prev_line = line
-    line_r = line_r_pin.read()/40.95
-    line_l = line_l_pin.read()/40.95
+    line_r = line_r_pin.read()/4096
+    line_l = line_l_pin.read()/4006
     dt = (time.time_ns() - t)/10**9
     t = time.time_ns()
 
@@ -55,16 +55,16 @@ for i in range(10**6):
 
     if state == "line":
 
-        kP = 1
-        kD = 5
-        kI = 0.005
-        iMax = 15
-        v = 75
+        kP = 100
+        kI = 100
+        kD = 1
+        iMax = 25
+        v = 50
 
         e = line_r - line_l
         P = e * kP 
-        I += e * kI
-        D = (e - e_old) * kD
+        I += e * kI * dt
+        D = (e - e_old) * kD / dt
 
         if(abs(I) > iMax): I = iMax * (1 if I > 0 else -1)
 
