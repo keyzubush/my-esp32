@@ -20,6 +20,12 @@ class DCMotor:
         self.pin1.value(0)
         self.pin2.value(1)
 
+    def move(self, speed):
+        self.speed = abs(speed)
+        self.enable_pin.duty(self.duty_cycle())
+        self.pin1.value(1 if speed > 0 else 0)
+        self.pin2.value(0 if speed > 0 else 1)
+
     def stop(self):
         self.enable_pin.duty(0)
         self.pin1.value(0)

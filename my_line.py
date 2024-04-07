@@ -56,10 +56,10 @@ for i in range(10**6):
     if state == "line":
 
         kP = 100
-        kI = 100
+        kI = 200
         kD = 1
         iMax = 25
-        v = 50
+        v = 80
 
         e = line_r - line_l
         P = e * kP 
@@ -71,8 +71,8 @@ for i in range(10**6):
         u = P + I + D
         e_old = e
 
-        dc_motor_l.forward(v + u)
-        dc_motor_r.forward(v - u)
+        dc_motor_l.move(v + u)
+        dc_motor_r.move(v - u)
 
         if i % 20 == 0:
             print(f"dt={dt}, l={line_l}, r={line_r}, u={u}, e={e}, P={P}, I={I}, D={D}")
