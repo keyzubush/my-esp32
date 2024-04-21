@@ -10,7 +10,7 @@ import dcmotor
 
 freq = 2000
 dc_motor_l = dcmotor.DCMotor(Pin(25, Pin.OUT), Pin(33, Pin.OUT), PWM(Pin(32), freq))
-dc_motor_r = dcmotor.DCMotor(Pin(27, Pin.OUT), Pin(26, Pin.OUT), PWM(Pin(14), freq))
+dc_motor_r = dcmotor.DCMotor(Pin(26, Pin.OUT), Pin(27, Pin.OUT), PWM(Pin(14), freq))
 sensor = HCSR04(trigger_pin=15, echo_pin=18)
 i2c = I2C(0, scl=Pin(22), sda=Pin(21))
 mpu = mpu6050.accel(i2c)
@@ -33,7 +33,7 @@ LINE_TIMEOUT = 2500
 ACCEL_DEGREE = 65
 K_P = 25
 K_D = 250
-V = 70
+V = 75
 
 class State():
     FORWARD = "forward"
@@ -122,6 +122,7 @@ async def calculate_state():
         await uasyncio.sleep_ms(5)
 
 async def drive_angle(angle):
+    v = 100
     a = 0
     timer = 0
     dc_motor_l.stop()
@@ -129,11 +130,11 @@ async def drive_angle(angle):
     await uasyncio.sleep_ms(100)
     while abs(a) < abs(ACCEL_DEGREE*angle) and timer < 5.0:
         if angle > 0:
-            dc_motor_l.forward(V)
-            dc_motor_r.backwards(V)
+            dc_motor_l.forward(v)
+            dc_motor_r.backwards(v)
         else:
-            dc_motor_r.forward(V)
-            dc_motor_l.backwards(V)
+            dc_motor_r.forward(v)
+            dc_motor_l.backwards(v)
         a += accel['GyZ']*dt
         timer += dt
         await uasyncio.sleep_ms(20)

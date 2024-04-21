@@ -20,3 +20,5 @@ webrepl.start()
 
 webrepl-master/webrepl_cli.py -p 493944 boot.py 192.168.1.239:boot.py
 
+webrepl-master/webrepl_cli.py -p 493944 192.168.1.239
+
