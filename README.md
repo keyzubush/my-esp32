@@ -22,3 +22,4 @@ webrepl-master/webrepl_cli.py -p 493944 boot.py 192.168.1.239:boot.py
 
 webrepl-master/webrepl_cli.py -p 493944 192.168.1.239
 
+./esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 115200 write_flash -z 0x0 cam.bin

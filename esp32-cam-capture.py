@@ -1,5 +1,5 @@
 import camera
-#camera.deinit()
+# camera.deinit()
 camera.init(0, format=camera.RGB565, framesize=camera.FRAME_96X96, fb_location=camera.PSRAM)
 camera.saturation(-2)
 
