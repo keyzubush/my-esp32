@@ -1,0 +1,5 @@
+f = open('settings.toml', 'w')
+f.write('CIRCUITPY_WIFI_SSID = "TP-LINK_DA27A2"\n')
+f.write('CIRCUITPY_WIFI_PASSWORD = "95797106"\n')
+f.write('CIRCUITPY_WEB_API_PASSWORD = "95797106"\n')
+f.close()
