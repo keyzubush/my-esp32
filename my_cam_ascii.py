@@ -36,12 +36,12 @@ while True:
     rgb565.byteswap(inplace=True)
     rgb565.shape = cam_shape
     # to RGB555
-    red   = np.asarray((rgb565 & red_mask)   / shift_8, dtype=np.uint8)
-    green = np.asarray((rgb565 & green_mask) / shift_3, dtype=np.uint8)
-    blue  = np.asarray((rgb565 & blue_mask)  * shift_3, dtype=np.uint8)
+    red   = np.asarray((rgb565 & red_mask)   // shift_8, dtype=np.uint8)
+    green = np.asarray((rgb565 & green_mask) // shift_3, dtype=np.uint8)
+    blue  = np.asarray((rgb565 & blue_mask)  *  shift_3, dtype=np.uint8)
  
     o = np.asarray(red, dtype=np.int16) + green + blue
-    r = np.clip(np.asarray(red, dtype=np.int16) * 2 - green - blue, 0, 256*2)
+    r = np.asarray(np.clip(np.asarray(red * 2, dtype=np.int16) - green - blue, 0, 256*2), dtype=np.int16)
 
     ascii = []
     print(o[48][48])
