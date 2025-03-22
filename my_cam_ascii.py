@@ -16,7 +16,9 @@ cam = espcamera.Camera(
     external_clock_frequency=20_000_000,
     pixel_format=espcamera.PixelFormat.RGB565,
     frame_size=espcamera.FrameSize.R96X96,
-    grab_mode=espcamera.GrabMode.LATEST)
+    grab_mode=espcamera.GrabMode.WHEN_EMPTY)
+
+cam.saturation = 2
 
 # grey = " .:-=+*#%@"
 grey = "@%#*+=-:. "
@@ -41,25 +43,33 @@ while True:
     blue  = np.asarray((rgb565 & blue_mask)  *  shift_3, dtype=np.uint8)
  
     o = np.asarray(red, dtype=np.int16) + green + blue
-    r = np.asarray(np.clip(np.asarray(red * 2, dtype=np.int16) - green - blue, 0, 256*2), dtype=np.int16)
+    r = np.asarray(np.clip(np.asarray(red, dtype=np.int16) * 2 - green - blue, 0, 256), dtype=np.int16)
+    g = np.asarray(np.clip(np.asarray(green, dtype=np.int16) * 2 - red - blue, 0, 256), dtype=np.int16)
 
     ascii = []
     print(o[48][48])
     for i in range(0, cam_shape[0], 2):
         s = []
         for j in range(0, cam_shape[1], 1):
-            s.append(grey[int((o[i][j] * len(grey)) // (256*3))])
+            s.append(grey[(o[i][j] * len(grey)) // (256*3+1)])
         ascii.append(''.join(s) + "\n")
     print(''.join(ascii))
-
-    input("Press Enter")
 
     ascii = []
     print(r[48][48])
     for i in range(0, cam_shape[0], 2):
         s = []
         for j in range(0, cam_shape[1], 1):
-            s.append(grey[int((r[i][j] * len(grey)) // (256*2))])
+            s.append(grey[(r[i][j] * len(grey)) // (256+1)])
+        ascii.append(''.join(s) + "\n")
+    print(''.join(ascii))
+
+    ascii = []
+    print(g[48][48])
+    for i in range(0, cam_shape[0], 2):
+        s = []
+        for j in range(0, cam_shape[1], 1):
+            s.append(grey[(g[i][j] * len(grey)) // (256+1)])
         ascii.append(''.join(s) + "\n")
     print(''.join(ascii))
 
