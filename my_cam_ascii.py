@@ -19,6 +19,15 @@ cam = espcamera.Camera(
     grab_mode=espcamera.GrabMode.LATEST)
 
 grey = " .:-=+*#%@"
+grey.reverse()
+cam_shape = (96, 96)
+red_mask   = np.full(cam_shape, 0b1111100000000000, dtype=np.uint16)
+green_mask = np.full(cam_shape, 0b0000011111100000, dtype=np.uint16)
+blue_mask  = np.full(cam_shape, 0b0000000000011111, dtype=np.uint16)
+red_shift   = np.full(cam_shape, 2**8) 
+green_shift = np.full(cam_shape, 2**3) 
+blue_shift  = np.full(cam_shape, 2**3) 
+
 
 while True:
     input("Press Enter")
@@ -26,23 +35,20 @@ while True:
     buf_orig = cam.take()
     buf = bytearray(buf_orig)
     rgb565 = np.frombuffer(buf, dtype=np.uint16)
-    rgb565.byteswap()
-    rgb565.shape = (96, 96) 
+    rgb565.byteswap(inplace=True)
+    rgb565.shape = cam_shape
     # to RGB555
-    red   = (rgb565 & np.full(rgb565.shape, 0b1111100000000000, dtype=np.uint16)) // np.full(rgb565.shape, 2**11) 
-    green = (rgb565 & np.full(rgb565.shape, 0b0000011111100000, dtype=np.uint16)) // np.full(rgb565.shape, 2**6)
-    blue  = (rgb565 & np.full(rgb565.shape, 0b0000000000011111, dtype=np.uint16)) // np.full(rgb565.shape, 2**0)
-    bw = np.asarray(red + green + blue, dtype=np.uint16)
-    red = np.asarray(red, dtype=np.uint16)
-    print(red[48][48])
-    print(green[48][48])
-    print(blue[48][48])
-    print(bw[48][48])
-    for i in range(0, 96, 2):
+    red   = np.asarray((rgb565 & red_mask)   / red_shift,   dtype=np.uint8)
+    green = np.asarray((rgb565 & green_mask) / green_shift, dtype=np.uint8)
+    blue  = np.asarray((rgb565 & blue_mask)  * blue_shift,  dtype=np.uint8)
+ 
+    o = np.asarray(red, dtype=np.int16) + green + blue
+ 
+    print(o[48][48])
+    for i in range(0, cam_shape[0], 2):
         s = []
-        for j in range(0, 96, 1):
-            # s.append(grey[(bw[i][j] * len(grey)) // 97])
-            s.append(grey[(red[i][j] * len(grey)) // 33])
+        for j in range(0, cam_shape[1], 1):
+            s.append(grey[(o[i][j] * len(grey)) // (256*3)])
         ascii.append(''.join(s) + "\n")
     print(''.join(ascii))
 
