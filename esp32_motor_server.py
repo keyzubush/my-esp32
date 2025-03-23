@@ -13,10 +13,10 @@ import board
 import pwmio
 from adafruit_motor import motor
 
-PWM_PIN_A = board.D14  # pick any pwm pins on their own channels
-PWM_PIN_B = board.D27
-PWM_PIN_C = board.D25  # pick any pwm pins on their own channels
-PWM_PIN_D = board.D26
+PWM_PIN_A = board.D26  # pick any pwm pins on their own channels
+PWM_PIN_B = board.D25
+PWM_PIN_C = board.D32  # pick any pwm pins on their own channels
+PWM_PIN_D = board.D33
 
 
 # DC motor setup

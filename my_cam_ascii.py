@@ -29,9 +29,12 @@ blue_mask  = np.full(cam_shape, 0b0000000000011111, dtype=np.uint16)
 shift_8    = np.full(cam_shape, 2**8) 
 shift_3    = np.full(cam_shape, 2**3) 
 
+step = 0
 
 while True:
-    input("Press Enter")
+    key = input("Press Enter, s to Save image")
+    step += 1
+
     buf_orig = cam.take()
     buf = bytearray(buf_orig)
     rgb565 = np.frombuffer(buf, dtype=np.uint16)

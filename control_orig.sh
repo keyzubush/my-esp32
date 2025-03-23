@@ -7,10 +7,10 @@ while read -rsn1 ui; do
         if [[ "$tmp" == "[" ]]; then
             read -rsn1 -t 0.05 tmp
             case "$tmp" in
-            "A") curl http://192.168.1.145:50190/forward ;;
-            "B") curl http://192.168.1.145:50190/backward ;;
-            "C") curl http://192.168.1.145:50190/right ;;
-            "D") curl http://192.168.1.145:50190/left ;;
+            "A") curl http://192.168.0.190:5000/forward ;;
+            "B") curl http://192.168.0.190:5000/backward ;;
+            "C") curl http://192.168.0.190:5000/right ;;
+            "D") curl http://192.168.0.190:5000/left ;;
             esac
         fi
         # Flush "stdin" with 0.1  sec timeout.
@@ -18,8 +18,8 @@ while read -rsn1 ui; do
         ;;
     # Other one byte (char) cases. Here only quit.
     q) break;;
-    s) curl http://192.168.1.145:50190/stop ;;
-    a) curl http://192.168.1.145:50190/leftstep ;;
-    d) curl http://192.168.1.145:50190/rightstep ;;
+    s) curl http://192.168.0.190:5000/stop ;;
+    a) curl http://192.168.0.190:5000/leftstep ;;
+    d) curl http://192.168.0.190:5000/rightstep ;;
     esac
 done
