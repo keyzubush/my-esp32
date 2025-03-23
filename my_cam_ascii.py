@@ -44,7 +44,21 @@ while True:
     red   = np.asarray((rgb565 & red_mask)   // shift_8, dtype=np.uint8)
     green = np.asarray((rgb565 & green_mask) // shift_3, dtype=np.uint8)
     blue  = np.asarray((rgb565 & blue_mask)  *  shift_3, dtype=np.uint8)
- 
+
+    if key == "s":
+        rgb = bytearray()
+        for i in range(cam_shape[0]):
+            for j in range(cam_shape[1]):
+                rgb.append(red[i][j])
+                rgb.append(green[i][j])
+                rgb.append(blue[i][j])
+        with open("bitmap_all." + str(step), "bw") as f:
+            f.write(rgb)
+        with open("bitmap_red." + str(step), "bw") as f:
+            f.write(red)
+        with open("bitmap_green." + str(step), "bw") as f:
+            f.write(green)
+
     o = np.asarray(red, dtype=np.int16) + green + blue
     r = np.asarray(np.clip(np.asarray(red, dtype=np.int16) * 2 - green - blue, 0, 256), dtype=np.int16)
     g = np.asarray(np.clip(np.asarray(green, dtype=np.int16) * 2 - red - blue, 0, 256), dtype=np.int16)
