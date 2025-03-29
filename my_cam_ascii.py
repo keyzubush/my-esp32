@@ -46,8 +46,8 @@ while True:
     blue  = np.asarray((rgb565 & blue_mask)  *  shift_3, dtype=np.uint8)
 
     o = np.asarray(red, dtype=np.int16) + green + blue
-    r = np.asarray(np.clip(np.asarray(red, dtype=np.int16) * 2 - green - blue, 0, 256), dtype=np.uint8)
-    g = np.asarray(np.clip(np.asarray(green, dtype=np.int16) * 2 - red - blue, 0, 256), dtype=np.uint8)
+    r = np.asarray(np.clip(np.asarray(red, dtype=np.int16) * 2 - green - blue, 0, 255), dtype=np.uint8)
+    g = np.asarray(np.clip(np.asarray(green, dtype=np.int16) * 2 - red - blue, 0, 255), dtype=np.uint8)
  
     if key == "s":
         rgb = bytearray()
