@@ -48,7 +48,14 @@ while True:
     o = np.asarray(red, dtype=np.int16) + green + blue
     r = np.asarray(np.clip(np.asarray(red, dtype=np.int16) * 2 - green - blue, 0, 255), dtype=np.uint8)
     g = np.asarray(np.clip(np.asarray(green, dtype=np.int16) * 2 - red - blue, 0, 255), dtype=np.uint8)
- 
+
+    min_col = list(np.argmin(o, axis = 1))
+    for i in range(0, len(min_col), 2):
+        s = []
+        for j in range(cam_shape[1]):
+            s.append("#" if min_col[i] == j else "_")
+        print("".join(s))
+
     if key == "s":
         rgb = bytearray()
         for i in range(cam_shape[0]):
@@ -79,7 +86,7 @@ while True:
         for j in range(0, cam_shape[1], 1):
             s.append(grey[(r[i][j] * len(grey)) // (256+1)])
         ascii.append(''.join(s) + "\n")
-    print(''.join(ascii))
+    # print(''.join(ascii))
 
     ascii = []
     print(g[48][48])
@@ -88,5 +95,5 @@ while True:
         for j in range(0, cam_shape[1], 1):
             s.append(grey[(g[i][j] * len(grey)) // (256+1)])
         ascii.append(''.join(s) + "\n")
-    print(''.join(ascii))
+    # print(''.join(ascii))
 

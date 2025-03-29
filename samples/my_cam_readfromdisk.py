@@ -12,6 +12,8 @@ with open(sys.argv[1], mode='rb') as file: # b is important -> binary
 if len(sys.argv) > 2:
     rgb = np.frombuffer(ba, np.uint8).reshape(-1, 96, 3)
     image = Image.fromarray(rgb, mode = "RGB")
+    a = np.sum(rgb, axis = 2)
+    print(np.argmin(a, axis = 1))
 else:
     gr = np.frombuffer(ba, np.uint8).reshape(-1, 96)
     image = Image.fromarray(gr, mode = "L")
