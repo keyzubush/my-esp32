@@ -4,6 +4,8 @@ import espcamera
 import board
 import busio
 
+i2c = board.I2C()
+
 cam = espcamera.Camera(
     data_pins=board.CAMERA_DATA,
     external_clock_pin=board.CAMERA_XCLK,
@@ -12,7 +14,7 @@ cam = espcamera.Camera(
     href_pin=board.CAMERA_HREF,
     powerdown_pin=board.CAMERA_PWDN,
     reset_pin=None,
-    i2c=board.I2C(),
+    i2c=i2c,
     external_clock_frequency=20_000_000,
     pixel_format=espcamera.PixelFormat.RGB565,
     frame_size=espcamera.FrameSize.R96X96,
@@ -20,6 +22,7 @@ cam = espcamera.Camera(
     grab_mode=espcamera.GrabMode.WHEN_EMPTY)
 
 cam.saturation = 2
+i2c.unlock()
 
 # grey = " .:-=+*#%@"
 grey = "@%#*+=-:. "
@@ -32,8 +35,10 @@ shift_3    = np.full(cam_shape, 2**3)
 
 step = 0
 
-while True:
-    key = input("Press Enter, s to Save image")
+for _ in range(100):
+    # key = input("Press Enter, s to Save image")
+    key = " "
+
     step += 1
 
     buf_orig = cam.take(1)
@@ -49,52 +54,14 @@ while True:
     o = np.asarray(red, dtype=np.int16) + green + blue
     r = np.asarray(np.clip(np.asarray(red, dtype=np.int16) * 2 - green - blue, 0, 255), dtype=np.uint8)
     g = np.asarray(np.clip(np.asarray(green, dtype=np.int16) * 2 - red - blue, 0, 255), dtype=np.uint8)
-
-    min_col = list(np.argmin(o, axis = 1))
-    for i in range(0, len(min_col), 2):
-        s = []
-        for j in range(cam_shape[1]):
-            s.append("#" if min_col[i] == j else "_")
-        print("".join(s))
-
-    if key == "s":
-        rgb = bytearray()
-        for i in range(cam_shape[0]):
-            for j in range(cam_shape[1]):
-                rgb.append(red[i][j])
-                rgb.append(green[i][j])
-                rgb.append(blue[i][j])
-        with open("bitmap_all." + str(step), "bw") as f:
-            f.write(rgb)
-        with open("bitmap_red." + str(step), "bw") as f:
-            f.write(r)
-        with open("bitmap_green." + str(step), "bw") as f:
-            f.write(g)
-
+ 
     ascii = []
     print(o[48][48])
-    for i in range(0, cam_shape[0], 2):
-        s = []
-        for j in range(0, cam_shape[1], 1):
-            s.append(grey[(o[i][j] * len(grey)) // (256*3+1)])
-        ascii.append(''.join(s) + "\n")
-    print(''.join(ascii))
+    # for i in range(0, cam_shape[0], 2):
+    #     s = []
+    #     for j in range(0, cam_shape[1], 1):
+    #         s.append(grey[(o[i][j] * len(grey)) // (256*3+1)])
+    #     ascii.append(''.join(s) + "\n")
+    print(step)
 
-    ascii = []
-    print(r[48][48])
-    for i in range(0, cam_shape[0], 2):
-        s = []
-        for j in range(0, cam_shape[1], 1):
-            s.append(grey[(r[i][j] * len(grey)) // (256+1)])
-        ascii.append(''.join(s) + "\n")
-    # print(''.join(ascii))
-
-    ascii = []
-    print(g[48][48])
-    for i in range(0, cam_shape[0], 2):
-        s = []
-        for j in range(0, cam_shape[1], 1):
-            s.append(grey[(g[i][j] * len(grey)) // (256+1)])
-        ascii.append(''.join(s) + "\n")
-    # print(''.join(ascii))
-
+i2c.unlock()
