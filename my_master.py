@@ -40,8 +40,8 @@ def msg_debug(msg, checks):
                 break
     return msg_debug_inner
 
-msg_debug_tx = msg_debug(msg_rx, ['left', 'right'])
-msg_debug_rx = msg_debug(msg_tx, ['distance', 'speed', 'angle'])
+msg_debug_tx = msg_debug(msg_tx, ['left', 'right'])
+msg_debug_rx = msg_debug(msg_rx, ['distance', 'speed', 'angle'])
 
 async def camera():
     global msg_rx, msg_tx
@@ -50,13 +50,10 @@ async def camera():
         buf = bytearray(buf_orig)
         gray = np.frombuffer(buf, dtype=np.uint8)
         gray.shape = cam_shape
-        min_col = list(np.argmin(gray, axis = 1))
-        s = []
-        NORM = STRIPE * cam_shape[1] / 2
-        for i in range(cam_shape[0], cam_shape[0]//2, STRIPE):
-            s.append(sum(gray[i-STRIPE: i]) - (cam_shape[0]//2) * STRIPE)
-        msg_tx['left'] = 0.75 - s[0]/NORM
-        msg_tx['left'] = 0.75 + s[0]/NORM
+        min_col = list(np.argmin(np.asarray(gray, dtype=np.int16), axis = 1))
+        delta = (sum(gray[-STRIPE:])/STRIPE - cam_shape[1]/2) / cam_shape[1]
+        msg_tx['left']  = 0.5 - delta
+        msg_tx['right'] = 0.5 + delta
         await asyncio.sleep(TIMEOUT)   
 
 async def uart_write(uart):
