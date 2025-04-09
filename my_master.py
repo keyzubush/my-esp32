@@ -1,4 +1,4 @@
-import board, asyncio, busio, json, espcamera
+import board, asyncio, busio, json, espcamera, time
 from ulab import numpy as np
 
 i2c = board.I2C()
@@ -23,6 +23,11 @@ cam_shape = (96, 96)
 
 TIMEOUT = 0.05
 STRIPE = 8
+# 
+R = 0.5
+Kp = 5.0
+Kip = 0.75
+Kdp = 0.75
 # uart = busio.UART(board.TX2, board.RX2, baudrate=115200, timeout = TIMEOUT)
 uart = busio.UART(board.IO12, board.IO13, baudrate=115200, timeout = TIMEOUT)
 
@@ -45,6 +50,7 @@ msg_debug_rx = msg_debug(msg_rx, ['distance', 'speed', 'angle'])
 
 async def camera():
     global msg_rx, msg_tx
+    t = time.monotonic()
     while True:
         buf_orig = cam.take(1)
         buf = bytearray(buf_orig)
@@ -52,8 +58,9 @@ async def camera():
         gray.shape = cam_shape
         min_col = list(np.argmin(np.asarray(gray, dtype=np.int16), axis = 1))
         delta = ((float(sum(min_col[-STRIPE:]))/STRIPE - cam_shape[1]/2) / cam_shape[1]
-        msg_tx['left']  = 0.5 - delta
-        msg_tx['right'] = 0.5 + delta
+        U = Kp * (Uprev * 
+        msg_tx['left']  = R - U
+        msg_tx['right'] = R + U
         await asyncio.sleep(TIMEOUT)   
 
 async def uart_write(uart):
