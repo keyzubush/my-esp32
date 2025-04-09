@@ -22,7 +22,7 @@ msg_rx = {'id': 0, 'timestamp': 0, 'left': 0, 'right': 0, 'duration': -1, 'hash'
 msg_tx = {'id': 0, 'timestamp': 0, 'distance': 999, 'speed': 0, 'angle': 0, 'hash': 0}
 
 def msg_debug(msg, checks):
-    msg_prev = msg
+    msg_prev = msg.copy()
     def msg_debug_inner(msg):
         nonlocal msg_prev
         for c in checks:
