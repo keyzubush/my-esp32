@@ -32,8 +32,8 @@ async def camera():
         # buf = bytearray(buf_orig)
         # gray = np.frombuffer(buf, dtype=np.uint8)
         gray = np.full((96*96,), fill_value=10, dtype=np.uint8)
-        gray.shape = cam_shape
-        min_col = list(np.argmin(np.asarray(gray, dtype=np.int16), axis = 1))
+        gray = gray.reshape(cam_shape)
+        min_col = list(np.argmin(gray, axis = 1))
         delta = (float(sum(min_col[-STRIPE:]))/STRIPE - cam_shape[1]/2) / cam_shape[1]
         msg_tx['left']  = 0.5 - delta
         msg_tx['right'] = 0.5 + delta

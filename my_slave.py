@@ -1,4 +1,4 @@
-import board, asyncio, busio, json, pwmio
+import board, asyncio, busio, json, pwmio, time
 from adafruit_motor import motor
 
 PWM_PIN_A = board.D26
@@ -26,7 +26,7 @@ def msg_debug(msg, checks):
     def msg_debug_inner(msg):
         nonlocal msg_prev
         for c in checks:
-            if msg_prev[c] != msg[c]:
+            if abs(msg_prev[c] - msg[c]) > 0.25:
                 print(msg)
                 msg_prev = msg.copy()
                 break
@@ -46,7 +46,7 @@ async def uart_write(uart):
     global msg_rx, msg_tx
     while True:
         msg_tx['id'] += 1
-        msg_tx['timestamp'] = time.time()
+        msg_tx['timestamp'] = time.monotonic()
         msg_debug_tx(msg_tx)
         uart.write(json.dumps(msg_tx).encode('utf-8'))
         await asyncio.sleep(TIMEOUT)   
@@ -54,10 +54,13 @@ async def uart_write(uart):
 async def uart_read(uart):
     global msg_rx, msg_tx
     while True:
-        ba = uart.read()
-        if ba:
-            msg_rx = json.loads(ba.decode('uft-8'))
-            msg_debug_rx(msg_rx)
+        try:
+            ba = uart.read()
+            if ba:
+                msg_rx = json.loads(ba.decode('uft-8'))
+                msg_debug_rx(msg_rx)
+        except:
+            pass
         await asyncio.sleep(TIMEOUT)   
 
 async def main():

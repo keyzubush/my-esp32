@@ -40,7 +40,7 @@ while True:
     buf = bytearray(buf_orig)
     rgb565 = np.frombuffer(buf, dtype=np.uint16)
     rgb565.byteswap(inplace=True)
-    rgb565.shape = cam_shape
+    rgb565 = rgb565.reshape(cam_shape)
     # to RGB555
     red   = np.asarray((rgb565 & red_mask)   // shift_8, dtype=np.uint8)
     green = np.asarray((rgb565 & green_mask) // shift_3, dtype=np.uint8)
