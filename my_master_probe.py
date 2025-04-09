@@ -35,20 +35,21 @@ async def camera():
         gray.shape = cam_shape
         min_col = list(np.argmin(np.asarray(gray, dtype=np.int16), axis = 1))
         delta = (float(sum(min_col[-STRIPE:]))/STRIPE - cam_shape[1]/2) / cam_shape[1]
-        msg_tx['left']  += 0.5 - delta
+        msg_tx['left']  = 0.5 - delta
         msg_tx['right'] = 0.5 + delta
-        await asyncio.sleep(TIMEOUT)   
+        msg_debug_tx(msg_tx)
+        await asyncio.sleep(0.3)   
 
 async def uart_write(uart):
     global msg_rx, msg_tx
     while True:
         msg_tx['id'] += 1
         msg_tx['timestamp'] = time.time()
-        msg_tx['left'] += 9
+        msg_tx['left'] = 9
         # input(msg_tx)
         msg_debug_tx(msg_tx)
         # uart.write(json.dumps(msg_tx).encode('utf-8'))
-        await asyncio.sleep(TIMEOUT)   
+        await asyncio.sleep(0.4)   
 
 async def uart_read(uart):
     global msg_rx, msg_tx
