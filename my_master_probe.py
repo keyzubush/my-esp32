@@ -15,8 +15,7 @@ def msg_debug(msg, checks):
     def msg_debug_inner(msg):
         nonlocal msg_prev
         for c in checks:
-            print(msg_prev[c])
-            print(msg[c])
+            # print(msg)
             if msg_prev[c] != msg[c]:
                 print(msg)
                 msg_prev = msg.copy()
@@ -36,7 +35,7 @@ async def camera():
         gray.shape = cam_shape
         min_col = list(np.argmin(np.asarray(gray, dtype=np.int16), axis = 1))
         delta = (float(sum(min_col[-STRIPE:]))/STRIPE - cam_shape[1]/2) / cam_shape[1]
-        msg_tx['left']  = 0.5 - delta
+        msg_tx['left']  += 0.5 - delta
         msg_tx['right'] = 0.5 + delta
         await asyncio.sleep(TIMEOUT)   
 
@@ -45,6 +44,7 @@ async def uart_write(uart):
     while True:
         msg_tx['id'] += 1
         msg_tx['timestamp'] = time.time()
+        msg_tx['left'] += 9
         # input(msg_tx)
         msg_debug_tx(msg_tx)
         # uart.write(json.dumps(msg_tx).encode('utf-8'))
