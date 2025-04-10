@@ -1,6 +1,6 @@
 import board, asyncio, busio, json, random
 
-TIMEOUT = 0.1
+TIMEOUT = 0.05
 uart = busio.UART(board.TX2, board.RX2, baudrate=115200, timeout = TIMEOUT)
 # uart = busio.UART(board.IO12, board.IO13, baudrate=115200, timeout = TIMEOUT)
 

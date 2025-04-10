@@ -25,11 +25,12 @@ TIMEOUT = 0.05
 STRIPE = 8
 # 
 R = 0.5
-Kp = 0.9
+Kp = 0.4
 Kip = 0.00
-Kdp = 0.25
+Kdp = 0.5
 # uart = busio.UART(board.TX2, board.RX2, baudrate=115200, timeout = TIMEOUT)
 uart = busio.UART(board.IO12, board.IO13, baudrate=115200, timeout = TIMEOUT)
+MAXBUFF = 256
 
 msg_tx = {'id': 0, 'timestamp': 0, 'left': 0, 'right': 0, 'duration': -1, 'hash': 0}
 msg_rx = {'id': 0, 'timestamp': 0, 'distance': 999, 'speed': 0, 'angle': 0, 'hash': 0}
@@ -61,6 +62,7 @@ async def camera():
         min_col = list(np.argmin(gray, axis = 1))
         #
         E = (float(sum(min_col[-STRIPE:]))/STRIPE - cam_shape[1]/2) / cam_shape[1]
+        # print(E)
         t = time.monotonic()
         dt = t - t_prev
         Ei += E * dt
@@ -68,8 +70,8 @@ async def camera():
         E_prev = E
         t_prev = t
         #
-        msg_tx['left']  = min(max(R - U, -1.0), 1.0)
-        msg_tx['right'] = min(max(R + U, -1.0), 1.0)
+        msg_tx['left']  = min(max(R + U, -1.0), 1.0)
+        msg_tx['right'] = min(max(R - U, -1.0), 1.0)
         await asyncio.sleep(TIMEOUT)   
 
 async def uart_write(uart):
@@ -85,7 +87,7 @@ async def uart_read(uart):
     global msg_rx, msg_tx
     while True:
         try:
-            ba = uart.read()
+            ba = uart.read(MAXBUFF)
             if ba:
                 msg_rx = json.loads(ba.decode('uft-8'))
                 msg_debug_rx(msg_rx)

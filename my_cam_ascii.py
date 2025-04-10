@@ -4,6 +4,8 @@ import espcamera
 import board
 import busio
 
+i2c = board.I2C()
+
 cam = espcamera.Camera(
     data_pins=board.CAMERA_DATA,
     external_clock_pin=board.CAMERA_XCLK,
@@ -12,7 +14,7 @@ cam = espcamera.Camera(
     href_pin=board.CAMERA_HREF,
     powerdown_pin=board.CAMERA_PWDN,
     reset_pin=None,
-    i2c=board.I2C(),
+    i2c=i2c,
     external_clock_frequency=20_000_000,
     pixel_format=espcamera.PixelFormat.RGB565,
     frame_size=espcamera.FrameSize.R96X96,
@@ -20,6 +22,7 @@ cam = espcamera.Camera(
     grab_mode=espcamera.GrabMode.WHEN_EMPTY)
 
 cam.saturation = 2
+i2c.unlock()
 
 # grey = " .:-=+*#%@"
 grey = "@%#*+=-:. "
@@ -98,3 +101,4 @@ while True:
         ascii.append(''.join(s) + "\n")
     # print(''.join(ascii))
 
+cam.deinit()

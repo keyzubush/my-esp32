@@ -17,6 +17,7 @@ motor1 = motor.DCMotor(pwm_a, pwm_b)
 TIMEOUT = 0.05
 uart = busio.UART(board.TX2, board.RX2, baudrate=115200, timeout = TIMEOUT)
 # uart = busio.UART(board.IO12, board.IO13, baudrate=115200, timeout = TIMEOUT)
+MAXBUFF = 256
 
 msg_rx = {'id': 0, 'timestamp': 0, 'left': 0, 'right': 0, 'duration': -1, 'hash': 0}
 msg_tx = {'id': 0, 'timestamp': 0, 'distance': 999, 'speed': 0, 'angle': 0, 'hash': 0}
@@ -48,14 +49,14 @@ async def uart_write(uart):
         msg_tx['id'] += 1
         msg_tx['timestamp'] = time.monotonic()
         msg_debug_tx(msg_tx)
-        uart.write(json.dumps(msg_tx).encode('utf-8'))
+        # uart.write(json.dumps(msg_tx).encode('utf-8'))
         await asyncio.sleep(TIMEOUT)   
 
 async def uart_read(uart):
     global msg_rx, msg_tx
     while True:
         try:
-            ba = uart.read()
+            ba = uart.read(MAXBUFF)
             if ba:
                 msg_rx = json.loads(ba.decode('uft-8'))
                 msg_debug_rx(msg_rx)
