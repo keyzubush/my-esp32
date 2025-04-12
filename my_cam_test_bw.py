@@ -42,6 +42,7 @@ for step in range(100):
     gray = gray.reshape(cam_shape)
     print(step)
 
+# print(gray)
 print("time:", time.time() - stime)
 
 cam.deinit()
