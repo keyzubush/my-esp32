@@ -22,10 +22,10 @@ cam.saturation = 2
 cam_shape = (96, 96)
 
 TIMEOUT = 0.05
-STRIPE = 8
+STRIPE = 24
 # 
-R = 0.5
-Kp = 0.5
+R = 0.7
+Kp = 0.65
 Ki = 0.0
 Kd = 0.1
 # uart = busio.UART(board.TX2, board.RX2, baudrate=115200, timeout = TIMEOUT)
