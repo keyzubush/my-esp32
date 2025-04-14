@@ -23,10 +23,9 @@ cam_shape = (96, 96)
 
 TIMEOUT = 0.05
 STRIPE = 24
-THRESHOLD = 48
 # 
-R = 0.5
-Kp = 0.6
+R = 0.7
+Kp = 0.65
 Ki = 0.0
 Kd = 0.1
 # uart = busio.UART(board.TX2, board.RX2, baudrate=115200, timeout = TIMEOUT)
@@ -55,24 +54,19 @@ async def camera():
     t_prev = time.monotonic()
     E_prev = 0.0
     Ei = 0.0
-    price = np.array(list(range(-cam_shape[1]//2, cam_shape[1]//2))*STRIPE, dtype=np.int8)
-    price = price.reshape((STRIPE, -1))
     while True:
         buf_orig = cam.take(1)
         buf = bytearray(buf_orig)
         gray = np.frombuffer(buf, dtype=np.uint8)
         gray = gray.reshape(cam_shape)
-        # min_col = list(np.argmin(gray, axis = 1))
-        gray_slice = gray[-STRIPE:, :]
-        gray_line = np.where(gray_slice < THRESHOLD, 1, 0)
-        # print(gray_line)
+        min_col = list(np.argmin(gray, axis = 1))
         #
-        E = np.sum(gray_line * price) / (STRIPE * cam_shape[1])
-        print(E)
+        E = (float(sum(min_col[-STRIPE:]))/STRIPE - cam_shape[1]/2) / cam_shape[1]
+        # print(E)
         t = time.monotonic()
         dt = t - t_prev
         Ei += E * dt
-        U = Kp*E + Ki*Ei + Kd*(E - E_prev)/dt
+        U = Kp * E + Ki * Ei + Kd * (E - E_prev)/dt
         E_prev = E
         t_prev = t
         #
