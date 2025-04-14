@@ -4,6 +4,7 @@ import espcamera
 import board
 import busio
 import time
+import sys
 
 i2c = board.I2C()
 
@@ -42,7 +43,8 @@ for step in range(100):
     gray = gray.reshape(cam_shape)
     print(step)
 
-# print(gray)
+np.set_printoptions(threshold=sys.maxsize)
+print(gray)
 print("time:", time.time() - stime)
 
 cam.deinit()
