@@ -22,10 +22,10 @@ cam.saturation = 2
 cam_shape = (96, 96)
 
 TIMEOUT = 0.05
-STRIPE = 12
+STRIPE = 24
 # 
-R = 0.5
-Kp = 0.7
+R = 0.7
+Kp = 0.65
 Ki = 0.0
 Kd = 0.1
 # uart = busio.UART(board.TX2, board.RX2, baudrate=115200, timeout = TIMEOUT)
@@ -49,14 +49,6 @@ def msg_debug(msg, checks):
 msg_debug_tx = msg_debug(msg_tx, ['left', 'right'])
 msg_debug_rx = msg_debug(msg_rx, ['distance', 'speed', 'angle'])
 
-def get_root(x):
-    if x < 0:
-        x = abs(x)
-        cube_root = x**(1/2)*(-1)
-    else:
-        cube_root = x**(1/2)
-    return cube_root
-
 async def camera():
     global msg_rx, msg_tx
     t_prev = time.monotonic()
@@ -67,10 +59,9 @@ async def camera():
         buf = bytearray(buf_orig)
         gray = np.frombuffer(buf, dtype=np.uint8)
         gray = gray.reshape(cam_shape)
-        min_col = list(np.argmin(gray, axis = 1))[-STRIPE:]
+        min_col = list(np.argmin(gray, axis = 1))
         #
-        norm_col = map(lambda x: get_root(x - cam_shape[1]/2), min_col)
-        E = sum(norm_col)/(STRIPE*cam_shape[1]/4)
+        E = (float(sum(min_col[-STRIPE:]))/STRIPE - cam_shape[1]/2) / cam_shape[1]
         # print(E)
         t = time.monotonic()
         dt = t - t_prev
