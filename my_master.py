@@ -18,16 +18,17 @@ cam = espcamera.Camera(
     frame_size=espcamera.FrameSize.R96X96,
     framebuffer_count=2,
     grab_mode=espcamera.GrabMode.WHEN_EMPTY)
-cam.saturation = 2
+cam.contrast = 0
 cam_shape = (96, 96)
 
 TIMEOUT = 0.05
-STRIPE = 8
+STRIPE = 12
 # 
-R = 0.5
-Kp = 0.6
-Ki = 0.0
-Kd = 0.3
+V = 0.4
+#
+Kp = 0.4
+Ki = 0.01
+Kd = 0.075
 # uart = busio.UART(board.TX2, board.RX2, baudrate=115200, timeout = TIMEOUT)
 uart = busio.UART(board.IO12, board.IO13, baudrate=115200, timeout = TIMEOUT)
 MAXBUF = 2048
@@ -62,7 +63,6 @@ async def camera():
         min_col = list(np.argmin(gray, axis = 1))
         #
         E = (float(sum(min_col[-STRIPE:]))/STRIPE - cam_shape[1]/2) / cam_shape[1]
-        # print(E)
         t = time.monotonic()
         dt = t - t_prev
         Ei += E * dt
@@ -70,8 +70,8 @@ async def camera():
         E_prev = E
         t_prev = t
         #
-        msg_tx['left']  = min(max(R + U, -1.0), 1.0)
-        msg_tx['right'] = min(max(R - U, -1.0), 1.0)
+        msg_tx['left']  = min(max(V + U, -1.0), 1.0)
+        msg_tx['right'] = min(max(V - U, -1.0), 1.0)
         await asyncio.sleep(TIMEOUT)   
 
 async def uart_write(uart):
