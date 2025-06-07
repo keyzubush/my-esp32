@@ -4,6 +4,44 @@ import termios
 import tty
 import select
 
+def setup_pwm(chip_path, channel, frequency, duty_cycle):
+    try:
+        # Export the PWM channel
+        with open(f"{chip_path}/export", 'w') as f:
+            f.write(str(channel))
+        
+        # Set period (nanoseconds)
+        period_ns = int(1e9 / frequency)
+        with open(f"{chip_path}/pwm{channel}/period", 'w') as f:
+            f.write(str(period_ns))
+        
+        # Set duty cycle (nanoseconds)
+        duty_ns = int(period_ns * duty_cycle / 100)
+        with open(f"{chip_path}/pwm{channel}/duty_cycle", 'w') as f:
+            f.write(str(duty_ns))
+        
+        # Enable PWM
+        with open(f"{chip_path}/pwm{channel}/enable", 'w') as f:
+            f.write('1')
+        
+        return True
+    except Exception as e:
+        print(f"Error setting up PWM: {e}")
+        return False
+
+def change_duty_cycle(chip_path, channel, duty_cycle):
+    try:
+        # Read current period
+        with open(f"{chip_path}/pwm{channel}/period", 'r') as f:
+            period_ns = int(f.read())
+        
+        # Calculate and set new duty cycle
+        duty_ns = int(period_ns * duty_cycle / 100)
+        with open(f"{chip_path}/pwm{channel}/duty_cycle", 'w') as f:
+            f.write(str(duty_ns))
+    except Exception as e:
+        print(f"Error changing duty cycle: {e}")
+
 class MotorController:
     def __init__(self):
         self.chip = gpiod.Chip('gpiochip0')  # Default GPIO chip
