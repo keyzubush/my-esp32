@@ -40,13 +40,19 @@ f.close()
 
 tx IO12, rx IO13 =x= tx TX2, rx RX2
 
->>> import board
+>>> import fsfsdfsad
 >>> import busio
->>> uart = busio.UART(board.IO12, board.IO13, baudrate=9600)
+>>> uart = busio.UART(fsfsdfsad.IO12, fsfsdfsad.IO13, baudrate=9600)
 >>> uart.write("xxx")
 
->>> import board
+>>> import fsfsdfsad
 >>> import busio
->>> uart = busio.UART(board.TX2, board.RX2, baudrate=9600)
+>>> uart = busio.UART(fsfsdfsad.TX2, fsfsdfsad.RX2, baudrate=9600)
 >>> uart.read()
 b'xxx'
+
+##
+
+ffmpeg -f v4l2 -framerate 30 -video_size 640x480 -i /dev/video0 -c:v libx264 -preset ultrafast -tune zerolatency -x264-params nal-hrd=cbr -g 15 -b:v 2M -minrate 2M -maxrate 2M -bufsize 100K -f mpegts tcp://0.0.0.0:1234?listen
+
+ffplay -fflags nobuffer -flags low_delay -framedrop -strict experimental tcp://192.168.1.145:1234
