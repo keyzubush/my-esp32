@@ -114,7 +114,7 @@ class LaneFollower:
         self.cap.set(cv2.CAP_PROP_FPS, 20)  # Limit framerate
         
         self.motors = MotorController()
-        self.KP, self.KI, self.KD = 1.5, 0.005, 0.5
+        self.KP, self.KI, self.KD = 6, 0.02, 4
         self.prev_error = 0
         self.integral = 0
         
@@ -222,7 +222,7 @@ class LaneFollower:
                     correction = 0
                 
                 # Motor control with new PWM system
-                base_speed = 0.90
+                base_speed = 1
                 left_speed = base_speed - correction
                 right_speed = base_speed + correction
                 self.motors.move(left_speed, right_speed)

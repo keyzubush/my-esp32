@@ -94,8 +94,8 @@ if __name__ == "__main__":
             time.sleep(2)
         
         # Rotate
-        controller.set_speeds(0.5, -0.5)
-        time.sleep(1)
+        controller.set_speeds(1.0, -1.0)
+        time.sleep(3)
         
         controller.stop_all()
         
