@@ -11,8 +11,8 @@ class MotorController:
         
         # PWM chip paths (adjust these according to your system)
         self.PWM_CHIP_PATH = "/sys/class/pwm/pwmchip0"
-        self.PWM1_CHANNEL = 0  # Channel for motor A
-        self.PWM2_CHANNEL = 1  # Channel for motor B
+        self.PWM1_CHANNEL = 1  # Channel for motor A
+        self.PWM2_CHANNEL = 4  # Channel for motor B
         
         # Initialize GPIO pins
         self.IN1 = self.chip.get_line(257)  
@@ -206,3 +206,4 @@ if __name__ == "__main__":
     finally:
         controller.cleanup()
         print("\nController stopped and resources released")
+
