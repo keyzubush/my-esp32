@@ -1,0 +1,35 @@
+import cv2
+
+cap = cv2.VideoCapture(0, cv2.CAP_V4L2)  # Use 0 for default camera, CAP_V4L2 for Linux
+
+# List of common CAP_PROP_* properties
+props = {
+    "CAP_PROP_POS_MSEC": cv2.CAP_PROP_POS_MSEC,
+    "CAP_PROP_POS_FRAMES": cv2.CAP_PROP_POS_FRAMES,
+    "CAP_PROP_POS_AVI_RATIO": cv2.CAP_PROP_POS_AVI_RATIO,
+    "CAP_PROP_FRAME_WIDTH": cv2.CAP_PROP_FRAME_WIDTH,
+    "CAP_PROP_FRAME_HEIGHT": cv2.CAP_PROP_FRAME_HEIGHT,
+    "CAP_PROP_FPS": cv2.CAP_PROP_FPS,
+    "CAP_PROP_FOURCC": cv2.CAP_PROP_FOURCC,
+    "CAP_PROP_FRAME_COUNT": cv2.CAP_PROP_FRAME_COUNT,
+    "CAP_PROP_FORMAT": cv2.CAP_PROP_FORMAT,
+    "CAP_PROP_MODE": cv2.CAP_PROP_MODE,
+    "CAP_PROP_BRIGHTNESS": cv2.CAP_PROP_BRIGHTNESS,
+    "CAP_PROP_CONTRAST": cv2.CAP_PROP_CONTRAST,
+    "CAP_PROP_SATURATION": cv2.CAP_PROP_SATURATION,
+    "CAP_PROP_HUE": cv2.CAP_PROP_HUE,
+    "CAP_PROP_GAIN": cv2.CAP_PROP_GAIN,
+    "CAP_PROP_EXPOSURE": cv2.CAP_PROP_EXPOSURE,
+    "CAP_PROP_AUTO_EXPOSURE": cv2.CAP_PROP_AUTO_EXPOSURE,
+    "CAP_PROP_ZOOM": cv2.CAP_PROP_ZOOM,
+    "CAP_PROP_FOCUS": cv2.CAP_PROP_FOCUS,
+    "CAP_PROP_AUTOFOCUS": cv2.CAP_PROP_AUTOFOCUS,
+    "CAP_PROP_BUFFERSIZE": cv2.CAP_PROP_BUFFERSIZE,
+}
+
+print("Current VideoCapture Properties:")
+for name, prop in props.items():
+    value = cap.get(prop)
+    print(f"{name}: {value}")
+
+cap.release()
